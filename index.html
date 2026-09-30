@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>שבילים בארץ</title>
+  <meta name="description" content="מסלולי טיול רגליים ואופניים בכל הארץ – עם כלב או בלי כלב">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <h1>🥾 שבילים בארץ</h1>
+    <p class="sub">מסלולים רגליים ואופניים בכל הארץ – עם כלב או בלי</p>
+
+    <div class="search">
+      <input id="q" type="search" placeholder="חיפוש מסלול, אזור או מילה…" autocomplete="off" aria-label="חיפוש מסלול">
+      <button id="near" type="button" title="מיין לפי מרחק ממני">📍 קרוב אליי</button>
+    </div>
+
+    <div class="filters" role="group" aria-label="סינון">
+      <div class="chip-group">
+        <span class="label">סוג:</span>
+        <button class="chip" data-filter="type" data-value="all" aria-pressed="true">הכל</button>
+        <button class="chip" data-filter="type" data-value="walk" aria-pressed="false">🚶 רגלי</button>
+        <button class="chip" data-filter="type" data-value="bike" aria-pressed="false">🚴 אופניים</button>
+      </div>
+      <div class="chip-group">
+        <span class="label">כלבים:</span>
+        <button class="chip" data-filter="dogs" data-value="all" aria-pressed="true">לא משנה</button>
+        <button class="chip" data-filter="dogs" data-value="yes" aria-pressed="false">🐕 עם כלב</button>
+        <button class="chip" data-filter="dogs" data-value="no" aria-pressed="false">🚫 בלי כלב</button>
+      </div>
+      <div class="chip-group selects">
+        <select id="region" aria-label="אזור"><option value="">כל האזורים</option></select>
+        <select id="difficulty" aria-label="רמת קושי">
+          <option value="">כל רמות הקושי</option>
+          <option>קל</option><option>בינוני</option><option>קשה</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="list-wrap">
+      <p id="count" class="count" aria-live="polite"></p>
+      <ul id="list" class="list"></ul>
+    </section>
+    <div id="map" class="map" aria-label="מפת מסלולים"></div>
+  </main>
+
+  <footer class="foot">
+    ⚠️ המידע לצורך התרשמות בלבד. לפני יציאה יש לבדוק הנחיות עדכניות (כולל כניסת כלבים) מול רשות הטבע והגנים וקק"ל.
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="data/trails.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
