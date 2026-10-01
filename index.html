@@ -18,6 +18,14 @@
       <button id="near" type="button" title="מיין לפי מרחק ממני">📍 קרוב אליי</button>
     </div>
 
+    <div class="geo">
+      <select id="city" aria-label="בחירת עיר כנקודת מוצא">
+        <option value="">או בחרו עיר / לחצו על המפה</option>
+      </select>
+      <span id="geo-msg" class="geo-msg" aria-live="polite"></span>
+      <button id="geo-clear" type="button" class="link" hidden>✕ נקה</button>
+    </div>
+
     <div class="filters" role="group" aria-label="סינון">
       <div class="chip-group">
         <span class="label">סוג:</span>

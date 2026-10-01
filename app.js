@@ -10,8 +10,21 @@
     region: document.getElementById("region"),
     difficulty: document.getElementById("difficulty"),
     list: document.getElementById("list"),
-    count: document.getElementById("count")
+    count: document.getElementById("count"),
+    city: document.getElementById("city"),
+    geoMsg: document.getElementById("geo-msg"),
+    geoClear: document.getElementById("geo-clear")
   };
+
+  var CITIES = [
+    ["תל אביב", 32.08, 34.78], ["ירושלים", 31.77, 35.21], ["חיפה", 32.79, 34.99],
+    ["באר שבע", 31.25, 34.79], ["אילת", 29.56, 34.95], ["טבריה", 32.79, 35.53],
+    ["צפת", 32.96, 35.50], ["קריית שמונה", 33.21, 35.57], ["נתניה", 32.32, 34.86],
+    ["מודיעין", 31.90, 35.01], ["ראשון לציון", 31.97, 34.79], ["אשדוד", 31.80, 34.65],
+    ["עפולה", 32.61, 35.29], ["נצרת", 32.70, 35.30], ["כרמיאל", 32.92, 35.30],
+    ["הרצליה", 32.16, 34.84], ["רחובות", 31.89, 34.81], ["ערד", 31.26, 35.21],
+    ["מצפה רמון", 30.61, 34.80], ["קצרין", 32.99, 35.69]
+  ];
 
   // ---------- מפה ----------
   // אם ספריית המפה לא נטענה (למשל ללא אינטרנט) – הרשימה והחיפוש ממשיכים לעבוד
@@ -130,7 +143,10 @@
       else if (map.hasLayer(m)) map.removeLayer(m);
     });
     if (result.length) {
-      map.fitBounds(L.latLngBounds(result.map(function (t) { return [t.lat, t.lng]; })), { padding: [30, 30], maxZoom: 12 });
+      var shown = state.origin ? result.slice(0, 5) : result;
+      var pts = shown.map(function (t) { return [t.lat, t.lng]; });
+      if (state.origin) pts.push([state.origin.lat, state.origin.lng]);
+      map.fitBounds(L.latLngBounds(pts), { padding: [30, 30], maxZoom: 12 });
     }
   }
 
@@ -205,17 +221,95 @@
     }
   });
 
+  // ---------- נקודת מוצא (קרוב אליי) ----------
+  var originMarker = null;
+
+  function showMsg(text, isError) {
+    els.geoMsg.textContent = text || "";
+    els.geoMsg.classList.toggle("error", !!isError);
+  }
+
+  function setOrigin(lat, lng, label) {
+    state.origin = { lat: lat, lng: lng };
+    els.near.textContent = "📍 קרוב אליי";
+    showMsg("ממוין לפי מרחק מ" + label);
+    els.geoClear.hidden = false;
+    if (hasMap) {
+      if (originMarker) originMarker.setLatLng([lat, lng]);
+      else originMarker = L.marker([lat, lng], {
+        icon: L.divIcon({ className: "", html: '<div class="origin-pin"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }),
+        title: "נקודת מוצא", zIndexOffset: 1000
+      }).bindTooltip("📍 נקודת מוצא").addTo(map);
+    }
+    render();
+  }
+
+  function clearOrigin() {
+    state.origin = null;
+    els.city.value = "";
+    els.geoClear.hidden = true;
+    showMsg("");
+    if (originMarker) { map.removeLayer(originMarker); originMarker = null; }
+    render();
+  }
+
+  var IN_APP_TIP = " אם נכנסתם מקישור בתוך אפליקציה (Outlook / Gmail / וואטסאפ) – פתחו את הקישור בדפדפן Chrome או Safari (בתפריט של האפליקציה: \"פתח בדפדפן\"). אפשר גם לבחור עיר או ללחוץ על המפה.";
+
+  function geoError(err) {
+    els.near.textContent = "📍 קרוב אליי";
+    if (err && err.code === 1) {
+      showMsg("אין הרשאה למיקום. אשרו גישה למיקום בהגדרות הדפדפן/הטלפון ונסו שוב." + IN_APP_TIP, true);
+    } else {
+      showMsg("לא התקבל אות מיקום." + IN_APP_TIP, true);
+    }
+  }
+
   els.near.addEventListener("click", function () {
-    if (!navigator.geolocation) { alert("הדפדפן לא תומך באיתור מיקום"); return; }
+    if (!window.isSecureContext) {
+      showMsg("איתור מיקום עובד רק בכתובת מאובטחת (https) – פתחו את האתר דרך GitHub Pages. בינתיים אפשר לבחור עיר או ללחוץ על המפה.", true);
+      return;
+    }
+    if (!navigator.geolocation) {
+      showMsg("הדפדפן לא תומך באיתור מיקום – בחרו עיר או לחצו על המפה.", true);
+      return;
+    }
     els.near.textContent = "⏳ מאתר…";
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      state.origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      els.near.textContent = "📍 ממוין לפי מרחק";
-      render();
-    }, function () {
-      els.near.textContent = "📍 קרוב אליי";
-      alert("לא הצלחנו לאתר את המיקום שלך");
-    }, { enableHighAccuracy: false, timeout: 10000 });
+    showMsg("");
+    // יש דפדפנים (בעיקר בתוך אפליקציות) שלא עונים בכלל לבקשת המיקום – לכן שעון עצר משלנו
+    var done = false;
+    var watchdog = setTimeout(function () { finish(null, { code: 3 }); }, 40000);
+    function finish(pos, err) {
+      if (done) return;
+      done = true;
+      clearTimeout(watchdog);
+      if (pos) setOrigin(pos.coords.latitude, pos.coords.longitude, "המיקום שלך");
+      else geoError(err);
+    }
+    var ok = function (pos) { finish(pos); };
+    navigator.geolocation.getCurrentPosition(ok, function (err) {
+      if (err.code === 1) return finish(null, err);
+      // ניסיון שני: דיוק נמוך וזמן המתנה ארוך יותר
+      navigator.geolocation.getCurrentPosition(ok, function (e) { finish(null, e); },
+        { enableHighAccuracy: false, timeout: 20000, maximumAge: 600000 });
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 300000 });
+  });
+
+  CITIES.forEach(function (c, i) {
+    var o = document.createElement("option");
+    o.value = i;
+    o.textContent = c[0];
+    els.city.appendChild(o);
+  });
+  els.city.addEventListener("change", function () {
+    if (els.city.value === "") return clearOrigin();
+    var c = CITIES[Number(els.city.value)];
+    setOrigin(c[1], c[2], c[0]);
+  });
+  els.geoClear.addEventListener("click", clearOrigin);
+
+  if (hasMap) map.on("click", function (e) {
+    els.city.value = "";
+    setOrigin(e.latlng.lat, e.latlng.lng, "הנקודה שנבחרה במפה");
   });
 
   render();
