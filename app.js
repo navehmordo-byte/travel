@@ -70,7 +70,11 @@
       .trim();
   }
 
-  function wazeUrl(t) { return "https://waze.com/ul?ll=" + t.lat + "," + t.lng + "&navigate=yes"; }
+  // q = שם המקום, כדי ש-Waze יציג יעד עם שם ולא "סיכה נעוצה"; ll = חיפוש סביב נקודת ההתחלה
+  function wazeUrl(t) {
+    return "https://waze.com/ul?q=" + encodeURIComponent(t.navName || t.name) +
+      "&ll=" + t.lat + "," + t.lng + "&navigate=yes";
+  }
   function gmapsUrl(t) { return "https://www.google.com/maps/dir/?api=1&destination=" + t.lat + "," + t.lng; }
 
   function typeLabel(t) {
