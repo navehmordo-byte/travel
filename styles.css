@@ -127,3 +127,12 @@ select {
 }
 .leaflet-popup-content { direction: rtl; text-align: right; font-family: inherit; }
 .leaflet-popup-content a { color: var(--accent); }
+
+.geo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 8px; }
+.geo-msg { font-size: .88rem; color: var(--muted); flex: 1 1 220px; }
+.geo-msg.error { color: var(--no); }
+.link { background: none; border: none; color: var(--accent); cursor: pointer; padding: 4px; }
+.origin-pin {
+  width: 16px; height: 16px; border-radius: 50%; background: #1a73e8;
+  border: 3px solid #fff; box-shadow: 0 0 0 4px rgba(26,115,232,.3);
+}
