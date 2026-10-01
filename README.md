@@ -27,7 +27,7 @@ python3 -m http.server 8000
 מוסיפים רשומה לקובץ `data/trails.js`:
 
 ```js
-{ id: 41, name: "שם המסלול", region: "אזור", lat: 32.0, lng: 35.0,
+{ id: 77, name: "שם המסלול", region: "אזור", lat: 32.0, lng: 35.0,
   type: ["walk", "bike"], dogs: true, dogNote: "כלבים ברצועה",
   difficulty: "קל", lengthKm: 5, durationH: 2, circular: true, water: false,
   description: "תיאור קצר" }
